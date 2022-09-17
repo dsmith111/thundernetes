@@ -206,9 +206,9 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
-	if recentStandingByCount > 0 {
-		GameServersCreatedDuration.WithLabelValues(gsb.Name).Set(timeToStandBySum / float64(recentStandingByCount))
-	}
+	// if recentStandingByCount > 0 {
+	// 	GameServersCreatedDuration.WithLabelValues(gsb.Name).Set(timeToStandBySum / float64(recentStandingByCount))
+	// }
 
 	if pendingCleanUpCount > 0 {
 		GameServersCleanUpDuration.WithLabelValues(gsb.Name).Set(timeToDeleteBySum / float64(pendingCleanUpCount))
