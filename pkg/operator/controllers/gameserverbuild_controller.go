@@ -158,10 +158,10 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			initializingCount++
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateStandingBy && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			standingByCount++
-			if gs.Status.State != gs.Status.PrevState {
-				timeToStandBySum += float64((*gs.Status.ReachedStandingByOn).Time.Sub(gs.CreationTimestamp.Time).Milliseconds())
-				recentStandingByCount++
-			}
+			// if gs.Status.State != gs.Status.PrevState {
+			timeToStandBySum += float64((*gs.Status.ReachedStandingByOn).Time.Sub(gs.CreationTimestamp.Time).Milliseconds())
+			recentStandingByCount++
+			// }
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateActive && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			activeCount++
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateGameCompleted && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
