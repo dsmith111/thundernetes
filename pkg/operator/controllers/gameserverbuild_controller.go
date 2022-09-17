@@ -159,8 +159,8 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateStandingBy && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			standingByCount++
 			// if gs.Status.State != gs.Status.PrevState {
-			timeToStandBySum += float64((*gs.Status.ReachedStandingByOn).Time.Sub(gs.CreationTimestamp.Time).Milliseconds())
-			recentStandingByCount++
+			// timeToStandBySum += float64((*gs.Status.ReachedStandingByOn).Time.Sub(gs.CreationTimestamp.Time).Milliseconds())
+			// recentStandingByCount++
 			// }
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateActive && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			activeCount++
@@ -226,9 +226,9 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 	// we also need to check if we are above the max
 	// this can happen if the user modifies the spec.Max during the GameServerBuild's lifetime
-	if nonActiveGameServersCount+activeCount > gsb.Spec.Max {
-		totalNumberOfGameServersToDelete = int(math.Min(float64(totalNumberOfGameServersToDelete+(nonActiveGameServersCount+activeCount-gsb.Spec.Max)), maxNumberOfGameServersToDelete))
-	}
+	// if nonActiveGameServersCount+activeCount > gsb.Spec.Max {
+	// 	totalNumberOfGameServersToDelete = int(math.Min(float64(totalNumberOfGameServersToDelete+(nonActiveGameServersCount+activeCount-gsb.Spec.Max)), maxNumberOfGameServersToDelete))
+	// }
 	if totalNumberOfGameServersToDelete > 0 {
 		err := r.deleteNonActiveGameServers(ctx, &gsb, &gameServers, totalNumberOfGameServersToDelete)
 		if err != nil {
