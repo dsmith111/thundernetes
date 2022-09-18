@@ -198,8 +198,10 @@ var _ = Describe("Utilities tests", func() {
 			var endTime *metav1.Time
 			endTime.Time = time.Now().Add(20 * time.Second)
 
+			var nilTime *metav1.Time
+
 			Expect(getStateDuration(endTime, startTime)).To(BeAssignableToTypeOf(float64(0)))
-			Expect(getStateDuration(nil, startTime)).To(BeAssignableToTypeOf(float64(0)))
+			Expect(getStateDuration(nilTime, startTime)).To(BeAssignableToTypeOf(float64(0)))
 			Expect(getStateDuration(endTime, startTime)).To(BeNumerically(">=", float64(0)))
 		})
 	})
