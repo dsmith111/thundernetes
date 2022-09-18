@@ -175,7 +175,7 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Exited", "GameServer %s session completed", gs.Name)
 
 			pendingCleanUpCount++
-			timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
+			// timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateCrashed {
 			// game server process exited with code != 0 (crashed)
 			crashesCount++
@@ -187,7 +187,7 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Unhealthy", "GameServer %s was deleted because it became unhealthy, state: %s, health: %s", gs.Name, gs.Status.State, gs.Status.Health)
 
 			pendingCleanUpCount++
-			timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
+			// timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
 		} else if gs.Status.Health == mpsv1alpha1.GameServerUnhealthy {
 			// all cases where the game server was marked as Unhealthy
 			crashesCount++
@@ -199,11 +199,11 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Crashed", "GameServer %s was deleted because it crashed, state: %s, health: %s", gs.Name, gs.Status.State, gs.Status.Health)
 
 			pendingCleanUpCount++
-			timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
+			// timeToDeleteBySum += math.Abs(float64(time.Until(gs.DeletionTimestamp.Time).Milliseconds()))
 		}
-		if gs.Status.State != gs.Status.PrevState {
-			gs.Status.PrevState = gs.Status.State
-		}
+		// if gs.Status.State != gs.Status.PrevState {
+		// 	gs.Status.PrevState = gs.Status.State
+		// }
 	}
 
 	// if recentStandingByCount > 0 {
