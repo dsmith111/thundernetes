@@ -142,8 +142,8 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	// calculate counts by state so we can update .status accordingly
 	var activeCount, standingByCount, crashesCount, initializingCount, pendingCount int
 	// Gather sum of time taken to reach standingby phase and server count to produce the recent average gameserver initialization time
-	var timeToStandBySum float64
-	var recentStandingByCount int
+	// var timeToStandBySum float64
+	// var recentStandingByCount int
 
 	// Gather current sum of estimated time taken to clean up crashed or pending deletion gameservers
 	var timeToDeleteBySum float64
