@@ -192,6 +192,7 @@ var _ = Describe("Utilities tests", func() {
 			Expect(isNodeGameServerNode(node)).To(BeFalse())
 		})
 		It("should return a positive time duration", func() {
+<<<<<<< HEAD
 			var startTime metav1.Time
 			startTime.Time = time.Now()
 
@@ -201,6 +202,18 @@ var _ = Describe("Utilities tests", func() {
 			Expect(getStateDuration(&endTime, &startTime)).To(BeAssignableToTypeOf(float64(0)))
 			Expect(getStateDuration(nil, &startTime)).To(BeAssignableToTypeOf(float64(0)))
 			Expect(getStateDuration(&endTime, &startTime)).To(BeNumerically(">=", float64(0)))
+=======
+			var startTime *metav1.Time
+			startTime.Time = time.Now()
+
+			var endTime *metav1.Time
+			endTime.Time = time.Now().Add(3 * time.Second)
+
+			Expect(getStateDuration(endTime, startTime)).To(BeAssignableToTypeOf(float64(0)))
+			Expect(getStateDuration(nil, startTime)).To(BeAssignableToTypeOf(float64(0)))
+			Expect(getStateDuration(startTime, endTime)).To(BeNumerically(">=", 0))
+			Expect(getStateDuration(endTime, nil)).Error()
+>>>>>>> Handle dereferencing;
 		})
 	})
 })
