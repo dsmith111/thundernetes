@@ -201,13 +201,14 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			pendingCleanUpCount++
 			timeToDeleteSum += getStateDuration(gs.DeletionTimestamp, &gs.CreationTimestamp)
 		}
+		r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Resetting Prev State pre condition", "Previous state %s", gs.Status.PrevState)
 		if gs.Status.State != gs.Status.PrevState {
-			r.Recorder.Event(&gsb, corev1.EventTypeNormal, "Resetting Prev State", string(gs.Status.PrevState))
-			patch := client.MergeFrom(gs.DeepCopy())
+			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Resetting Prev State", "Previous state %s", gs.Status.PrevState)
+			// patch := client.MergeFrom(gs.DeepCopy())
 			gs.Status.PrevState = gs.Status.State
 			// updating GameServer's previous state
 			if gs.Status.Health != mpsv1alpha1.GameServerUnhealthy {
-				if err := r.Status().Patch(ctx, &gs, patch); err != nil {
+				if err := r.Status().Update(ctx, &gs); err != nil {
 					return ctrl.Result{}, err
 				}
 			}
