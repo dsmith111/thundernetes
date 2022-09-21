@@ -201,14 +201,13 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			pendingCleanUpCount++
 			timeToDeleteSum += getStateDuration(gs.DeletionTimestamp, &gs.CreationTimestamp)
 		}
-		r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Resetting Prev State pre condition", "Previous state %s", gs.Status.PrevState)
+
 		if gs.Status.State != gs.Status.PrevState {
-			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Resetting Prev State", "Previous state %s", gs.Status.PrevState)
-			// patch := client.MergeFrom(gs.DeepCopy())
+			patch := client.MergeFrom(gs.DeepCopy())
 			gs.Status.PrevState = gs.Status.State
 			// updating GameServer's previous state
 			if gs.Status.Health != mpsv1alpha1.GameServerUnhealthy {
-				if err := r.Status().Update(ctx, &gs); err != nil {
+				if err := r.Status().Patch(ctx, &gs, patch); err != nil {
 					return ctrl.Result{}, err
 				}
 			}
@@ -266,12 +265,10 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				errCh <- err
 				return
 			}
-			newgs.Status.PrevState = mpsv1alpha1.GameServerStateInitializing
 			if err := r.Create(ctx, newgs); err != nil {
 				errCh <- err
 				return
 			}
-			r.Recorder.Event(&gsb, corev1.EventTypeNormal, "Initializing Prev State", string(newgs.Status.PrevState))
 			r.expectations.addGameServerToUnderCreationMap(gsb.Name, newgs.Name)
 			GameServersCreatedCounter.WithLabelValues(gsb.Name).Inc()
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Creating", "Creating GameServer %s", newgs.Name)
