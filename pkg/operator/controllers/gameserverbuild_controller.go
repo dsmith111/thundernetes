@@ -206,9 +206,9 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			// patch := client.MergeFrom(gs.DeepCopy())
 			gs.Status.PrevState = gs.Status.State
 			// // updating GameServer's previous state
-			// if err := r.Status().Patch(ctx, &gs, patch); err != nil {
-			// 	return ctrl.Result{}, err
-			// }
+			if err := r.Status().Update(ctx, &gs); err != nil {
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
