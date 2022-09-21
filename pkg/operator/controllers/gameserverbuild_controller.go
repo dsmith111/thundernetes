@@ -207,11 +207,10 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			gs.Status.PrevState = gs.Status.State
 
 			// updating GameServer's previous state
-			r.Recorder.Event(&gsb, corev1.EventTypeNormal, "PATCHING", "Attempting to patch gameserver")
-			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "PATCHING-GS", "PATCH: %s", gs.Status)
-			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "PATCHING-PATCH", "PATCH: %s", patch.Type())
 			if err := r.Status().Patch(ctx, &gs, patch); err != nil {
-				return ctrl.Result{}, err
+				if !apierrors.IsNotFound(err) {
+					return ctrl.Result{}, err
+				}
 			}
 		}
 	}
