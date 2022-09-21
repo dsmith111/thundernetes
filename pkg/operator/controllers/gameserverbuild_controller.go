@@ -203,12 +203,13 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 
 		if gs.Status.State != gs.Status.PrevState && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
-			// patch := client.MergeFrom(gs.DeepCopy())
+			patch := client.MergeFrom(gs.DeepCopy())
+			log.Info(string(patch.Type()))
 			gs.Status.PrevState = gs.Status.State
 			// // updating GameServer's previous state
-			if err := r.Status().Update(ctx, &gs); err != nil {
-				return ctrl.Result{}, err
-			}
+			// if err := r.Status().Update(ctx, &gs); err != nil {
+			// return ctrl.Result{}, err
+			// }
 		}
 	}
 
