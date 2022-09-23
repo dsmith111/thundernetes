@@ -141,13 +141,6 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// calculate counts by state so we can update .status accordingly
 	var activeCount, standingByCount, crashesCount, initializingCount, pendingCount int
-	// Gather sum of time taken to reach standingby phase and server count to produce the recent average gameserver initialization time
-	var timeToStandBySum float64
-	var recentStandingByCount int
-
-	// Gather current sum of estimated time taken to clean up crashed or pending deletion gameservers
-	var timeToDeleteSum float64
-	var pendingCleanUpCount int
 
 	for i := 0; i < len(gameServers.Items); i++ {
 		gs := gameServers.Items[i]
@@ -158,10 +151,6 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			initializingCount++
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateStandingBy && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			standingByCount++
-			if gs.Status.State != gs.Status.PrevState {
-				timeToStandBySum += getStateDuration(gs.Status.ReachedStandingByOn, &gs.CreationTimestamp)
-				recentStandingByCount++
-			}
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateActive && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
 			activeCount++
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateGameCompleted && gs.Status.Health == mpsv1alpha1.GameServerHealthy {
@@ -173,9 +162,6 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			GameServersSessionEndedCounter.WithLabelValues(gsb.Name).Inc()
 			r.expectations.addGameServerToUnderDeletionMap(gsb.Name, gs.Name)
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Exited", "GameServer %s session completed", gs.Name)
-
-			pendingCleanUpCount++
-			timeToDeleteSum += getStateDuration(gs.DeletionTimestamp, &gs.CreationTimestamp)
 		} else if gs.Status.State == mpsv1alpha1.GameServerStateCrashed {
 			// game server process exited with code != 0 (crashed)
 			crashesCount++
@@ -185,9 +171,6 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			GameServersCrashedCounter.WithLabelValues(gsb.Name).Inc()
 			r.expectations.addGameServerToUnderDeletionMap(gsb.Name, gs.Name)
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Unhealthy", "GameServer %s was deleted because it became unhealthy, state: %s, health: %s", gs.Name, gs.Status.State, gs.Status.Health)
-
-			pendingCleanUpCount++
-			timeToDeleteSum += getStateDuration(gs.DeletionTimestamp, &gs.CreationTimestamp)
 		} else if gs.Status.Health == mpsv1alpha1.GameServerUnhealthy {
 			// all cases where the game server was marked as Unhealthy
 			crashesCount++
@@ -197,30 +180,7 @@ func (r *GameServerBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			GameServersUnhealthyCounter.WithLabelValues(gsb.Name).Inc()
 			r.expectations.addGameServerToUnderDeletionMap(gsb.Name, gs.Name)
 			r.Recorder.Eventf(&gsb, corev1.EventTypeNormal, "Crashed", "GameServer %s was deleted because it crashed, state: %s, health: %s", gs.Name, gs.Status.State, gs.Status.Health)
-
-			pendingCleanUpCount++
-			timeToDeleteSum += getStateDuration(gs.DeletionTimestamp, &gs.CreationTimestamp)
 		}
-
-		if gs.Status.State != gs.Status.PrevState {
-			// patch := client.MergeFrom(gs.DeepCopy())
-			gs.Status.PrevState = gs.Status.State
-
-			// updating GameServer's previous state
-			// if err := r.Status().Patch(ctx, &gs, patch); err != nil {
-			// 	if !apierrors.IsNotFound(err) {
-			// 		return ctrl.Result{}, err
-			// 	}
-			// }
-		}
-	}
-
-	if recentStandingByCount > 0 {
-		GameServersCreatedDuration.WithLabelValues(gsb.Name).Set(timeToStandBySum / float64(recentStandingByCount))
-	}
-
-	if pendingCleanUpCount > 0 {
-		GameServersCleanUpDuration.WithLabelValues(gsb.Name).Set(timeToDeleteSum / float64(pendingCleanUpCount))
 	}
 
 	// calculate the total amount of servers not in the active state
@@ -396,8 +356,6 @@ func (r *GameServerBuildReconciler) deleteNonActiveGameServers(ctx context.Conte
 				GameServersDeletedCounter.WithLabelValues(gsb.Name).Inc()
 				r.expectations.addGameServerToUnderDeletionMap(gsb.Name, gs.Name)
 				r.Recorder.Eventf(gsb, corev1.EventTypeNormal, "GameServer deleted", "GameServer %s deleted", gs.Name)
-				duration := time.Since(deletionStartTime).Milliseconds()
-				GameServersEndedDuration.WithLabelValues(gsb.Name).Set(float64(duration))
 			}(deletionStartTime)
 		}
 	}
